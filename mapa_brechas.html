@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Mapa interactivo de brechas territoriales e inversión pública del Perú"
+    />
+    <title>Mapa de brechas e inversión · Perú</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23064942'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial' font-size='22' font-weight='700' fill='white'%3EPE%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./mapa_brechas.css" />
+    <script defer src="./mapa_brechas.js"></script>
+  </head>
+  <body>
+    <div class="app" id="app" aria-busy="true">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-logos" aria-label="Instituciones responsables">
+            <a href="https://www.gfpsubnacional.pe/inicio/" target="_blank" rel="noopener noreferrer">
+              <img src="./gfp_darkbg.png" alt="GFP Subnacional" />
+            </a>
+            <a href="https://cooperacionsuiza.pe/seco" target="_blank" rel="noopener noreferrer">
+              <img src="./suiza_darkbg.png" alt="Cooperación Económica Suiza SECO" />
+            </a>
+            <a href="https://baselgovernance.org" target="_blank" rel="noopener noreferrer">
+              <img src="./basel_darkbg.png" alt="Basel Institute on Governance" />
+            </a>
+          </div>
+          <div class="brand-copy">
+            <p class="eyebrow">BRECHAS TERRITORIALES · 2017–2025</p>
+            <h1>Necesidades básicas e inversión pública</h1>
+          </div>
+        </div>
+        <div class="header-actions">
+          <span class="status-chip" id="sourceStatus" role="status">Cargando datos…</span>
+          <button class="icon-button" id="methodButton" type="button" aria-label="Abrir metodología">
+            Metodología
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="control-panel" aria-label="Controles del mapa">
+          <div class="controls-grid">
+            <label class="control">
+              <span>Nivel</span>
+              <select id="levelSelect">
+                <option value="region">Departamento</option>
+                <option value="province">Provincia</option>
+                <option value="district">Distrito</option>
+              </select>
+            </label>
+
+            <label class="control">
+              <span>Necesidad básica</span>
+              <select id="indicatorSelect">
+                <option value="electricity">Electricidad · % de viviendas sin alumbrado eléctrico por red pública</option>
+                <option value="water_coverage">Agua · % de viviendas sin cobertura de agua</option>
+                <option value="water_continuity">Agua · % de viviendas sin agua todos los días</option>
+                <option value="education">Educación · % de la población de 3 a 24 años que no asiste</option>
+                <option value="internet">Internet · % de hogares sin conexión a internet</option>
+              </select>
+            </label>
+
+            <label class="control">
+              <span>Vista de mapa</span>
+              <select id="viewSelect">
+                <option value="nbi">Avance de la brecha</option>
+                <option value="investment">Inversión en el sector</option>
+                <option value="comparison">Brecha × inversión</option>
+              </select>
+            </label>
+
+            <label class="control" id="measureControl">
+              <span id="measureLabel">Medida</span>
+              <select id="measureSelect"></select>
+            </label>
+
+            <label class="control territory-control">
+              <span>Ir a territorio</span>
+              <input
+                id="territorySearch"
+                type="search"
+                list="territoryOptions"
+                placeholder="Escribe para buscar…"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="Buscar y abrir un territorio"
+              />
+              <datalist id="territoryOptions"></datalist>
+            </label>
+          </div>
+
+          <div class="filter-toolbar" aria-label="Filtros combinables y exportación">
+            <label class="compact-control">
+              <span>Devengado</span>
+              <select id="tierFilterSelect">
+                <option value="all">Todos</option>
+                <option value="low">Bajo</option>
+                <option value="medium">Medio</option>
+                <option value="high">Alto</option>
+              </select>
+            </label>
+            <label class="compact-control">
+              <span>Avance</span>
+              <select id="progressFilterSelect">
+                <option value="all">Todos</option>
+                <option value="advance">Avance</option>
+                <option value="stagnant">Estancado</option>
+                <option value="setback">Retroceso</option>
+              </select>
+            </label>
+            <button class="export-button" id="exportButton" type="button" title="Exportar los datos filtrados" disabled>
+              Exportar
+            </button>
+          </div>
+
+          <section class="context-card" aria-live="polite">
+            <p class="context-kicker" id="contextKicker">Cargando datos</p>
+            <strong id="contextTitle">Preparando el mapa…</strong>
+            <p id="contextNote">Explora los indicadores territoriales y la inversión pública asociada.</p>
+          </section>
+
+          <div class="mini-stats" aria-label="Resumen de la vista">
+            <div><span>Unidades</span><strong id="statUnits">—</strong></div>
+            <div><span>Comparables</span><strong id="statComparable">—</strong></div>
+            <div><span>Inversiones</span><strong id="statProjects">—</strong></div>
+          </div>
+
+          <p class="source-note">
+            <strong>Elaboración: Programa GFP Subnacional</strong><br />
+            Implementado por Basel Institute on Governance.<br />
+            Fuentes: Censos 2017 y 2025; inversiones cerradas de Invierte.pe, 2017–2024.
+          </p>
+        </aside>
+
+        <section class="map-panel" aria-labelledby="mapHeading">
+          <div class="map-heading">
+            <div>
+              <p class="eyebrow" id="mapEyebrow">MAPA COROPLÉTICO</p>
+              <h2 id="mapHeading">Cargando…</h2>
+              <p class="map-subheading" id="mapSubheading" hidden></p>
+            </div>
+            <span id="mapUnitCount">—</span>
+          </div>
+
+          <div class="map-nav" aria-label="Mover y ampliar el mapa">
+            <button id="zoomInButton" type="button" title="Acercar" aria-label="Acercar mapa">+</button>
+            <button id="zoomOutButton" type="button" title="Alejar hasta la vista mundial" aria-label="Alejar mapa hasta la vista mundial">−</button>
+            <button id="resetMapButton" type="button" title="Restablecer vista" aria-label="Restablecer posición y zoom">Recentrar</button>
+          </div>
+
+          <svg
+            id="peruMap"
+            viewBox="-130 -240 900 1160"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-labelledby="svgTitle svgDescription"
+          >
+            <title id="svgTitle">Mapa interactivo del Perú con contexto mundial</title>
+            <desc id="svgDescription">
+              Los límites de todos los países y el océano dan contexto mundial. Arrastra para mover, usa la rueda o los controles para ampliar y selecciona un territorio del Perú para abrir su ficha.
+            </desc>
+            <rect class="map-ocean" x="-130" y="-240" width="900" height="1160" aria-hidden="true"></rect>
+            <g id="mapViewport">
+              <g id="neighborLayer" aria-hidden="true"></g>
+              <g id="mapLayer"></g>
+              <g id="mapLabelLayer" aria-hidden="true"></g>
+              <g id="mapOverlayLayer" aria-hidden="true"></g>
+            </g>
+          </svg>
+
+          <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+          <aside class="legend" id="legend" aria-label="Leyenda del mapa"></aside>
+
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="loader" aria-hidden="true"></div>
+            <strong id="loadingTitle">Cargando los datos</strong>
+            <span id="loadingDetail">Esto puede tardar unos segundos.</span>
+          </div>
+
+          <div class="error-panel" id="errorPanel" hidden>
+            <strong>No se pudieron cargar los datos</strong>
+            <p id="errorMessage"></p>
+            <p>Intenta recargar la página. Si el problema continúa, comunícalo al equipo responsable.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="detailDialog" class="detail-dialog">
+      <article class="dialog-card">
+        <header class="dialog-header">
+          <div>
+            <p class="eyebrow" id="detailHierarchy"></p>
+            <h2 id="detailTitle">Ficha territorial</h2>
+          </div>
+          <button class="close-button" id="detailClose" type="button" aria-label="Cerrar ficha">×</button>
+        </header>
+        <div class="dialog-body" id="detailBody"></div>
+      </article>
+    </dialog>
+
+    <dialog id="methodDialog" class="method-dialog">
+      <article class="dialog-card">
+        <header class="dialog-header">
+          <div>
+            <p class="eyebrow">CRITERIOS DE LECTURA</p>
+            <h2>Metodología</h2>
+          </div>
+          <button class="close-button" id="methodClose" type="button" aria-label="Cerrar metodología">×</button>
+        </header>
+        <div class="dialog-body prose" id="methodBody"></div>
+      </article>
+    </dialog>
+  </body>
+</html>
