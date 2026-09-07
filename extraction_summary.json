@@ -1,0 +1,40 @@
+{
+  "districts_2017": 1874,
+  "districts_2025": 1892,
+  "districts_union": 1892,
+  "districts_only_2025": 18,
+  "districts_only_2017": 0,
+  "output_rows": 37804,
+  "checks_2017": {
+    "electricity_mismatch": 0,
+    "internet_mismatch": 0,
+    "water_coverage_mismatch": 0,
+    "water_continuity_mismatch": 0
+  },
+  "checks_2025": {
+    "electricity_mismatch": 0,
+    "internet_mismatch": 0,
+    "water_coverage_mismatch": 0,
+    "water_continuity_mismatch": 0
+  },
+  "attendance_districts_2017": 1874,
+  "attendance_districts_2025": 1892,
+  "attendance_checks_2017": {
+    "duplicate_ubigeo": 0,
+    "count_mismatch": 0,
+    "rate_mismatch": 0,
+    "blank_values": 0
+  },
+  "attendance_checks_2025": {
+    "duplicate_ubigeo": 0,
+    "unexpected_year": 0,
+    "rate_out_of_range": 0,
+    "blank_values": 0
+  },
+  "universe_districts_2017": 1874,
+  "universe_districts_2025": 1892,
+  "blank_values": 144,
+  "blank_applicable_percentages": 144,
+  "removed_red_indicator_rows": 7532,
+  "output_file": "C:\\Users\\jmoli\\Documents\\Julio-Molina_investigacion\\brechas_work\\data\\input\\base_distrital_variables_raw_2017_2025.xlsx"
+}

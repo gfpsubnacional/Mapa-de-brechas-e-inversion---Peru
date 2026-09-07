@@ -1,0 +1,45 @@
+diff --git a/mapa_brechas.js b/mapa_brechas.js
+index dacc67a..87b6a8f 100644
+--- a/mapa_brechas.js
++++ b/mapa_brechas.js
+@@ -2561,21 +2561,31 @@
+       scale.setAttribute("aria-label", "Tercil bajo, medio y alto de inversión");
+       el.legend.appendChild(scale);
+ 
++      const low = Number.isFinite(q1)
++        ? `Bajo: ≤ ${formatInvestmentMeasureValue(q1, state.measure, true)}`
++        : "Tercil bajo";
++      const medium = Number.isFinite(q1) && Number.isFinite(q2)
++        ? `Medio: ${formatInvestmentMeasureValue(q1, state.measure, true)}–${formatInvestmentMeasureValue(q2, state.measure, true)}`
++        : "Tercil medio";
++      const high = Number.isFinite(q2)
++        ? `Alto: > ${formatInvestmentMeasureValue(q2, state.measure, true)}`
++        : "Tercil alto";
++
+       const labels = create("div", "legend-labels");
+-      labels.append(
+-        create("span", "", "Bajo"),
+-        create("span", "", "Medio"),
+-        create("span", "", "Alto"),
+-      );
++      labels.style.display = "grid";
++      labels.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
++      [low, medium, high].forEach((label) => {
++        const item = create("span", "", label);
++        item.style.textAlign = "center";
++        item.style.lineHeight = "1.2";
++        labels.appendChild(item);
++      });
+       el.legend.appendChild(labels);
+ 
+-      const cuts = Number.isFinite(q1) && Number.isFinite(q2)
+-        ? ` Cortes: ${formatInvestmentMeasureValue(q1)} y ${formatInvestmentMeasureValue(q2)}.`
+-        : "";
+       el.legend.appendChild(create(
+         "p",
+         "",
+-        `Colores por terciles de ${measure.short.toLowerCase()} para el nivel territorial y sector seleccionados.${cuts} Rojo: tercil bajo; amarillo: medio; verde: alto. El valor 0 se clasifica como bajo. Gris: sin dato.`,
++        `Terciles calculados para el nivel territorial y sector seleccionados. El valor 0 se clasifica como bajo. Gris: sin dato.`,
+       ));
+       return;
+     }
