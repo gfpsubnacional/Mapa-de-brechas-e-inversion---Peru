@@ -10,6 +10,7 @@
     <title>Mapa de brechas e inversión · Perú</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23064942'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial' font-size='22' font-weight='700' fill='white'%3EPE%3C/text%3E%3C/svg%3E" />
     <link rel="stylesheet" href="./mapa_brechas.css" />
+    <script defer src="./xlsx_vendor.js"></script>
     <script defer src="./mapa_brechas.js"></script>
   </head>
   <body>
@@ -34,23 +35,36 @@
         </div>
         <div class="header-actions">
           <span class="status-chip" id="sourceStatus" role="status">Cargando datos…</span>
+          <button class="icon-button" id="contextButton" type="button" aria-label="Abrir contexto general" disabled>
+            Contexto
+          </button>
           <button class="icon-button" id="methodButton" type="button" aria-label="Abrir metodología">
             Metodología
           </button>
         </div>
       </header>
 
-      <main class="workspace">
+      <main class="workspace" id="workspace">
         <aside class="control-panel" aria-label="Controles del mapa">
           <div class="controls-grid">
-            <label class="control">
-              <span>Nivel</span>
-              <select id="levelSelect">
-                <option value="region">Departamento</option>
-                <option value="province">Provincia</option>
-                <option value="district">Distrito</option>
-              </select>
-            </label>
+            <div class="control view-control">
+              <span id="viewControlLabel">Vista de mapa</span>
+              <div class="view-toggle" id="viewToggle" role="group" aria-labelledby="viewControlLabel">
+                <button class="view-option is-active" type="button" data-view="nbi" aria-pressed="true" title="Avance de la necesidad básica insatisfecha">Avance NBI</button>
+                <button class="view-option" type="button" data-view="investment" aria-pressed="false" title="Inversión en el sector">Inversión</button>
+                <button class="view-option" type="button" data-view="comparison" aria-pressed="false" title="Avance NBI x Inversión">Avance NBI x Inversión</button>
+                <button class="view-option" type="button" data-view="multi_nbi" aria-pressed="false" title="Servicios priorizados con estancamiento o retroceso">Varias NBI</button>
+              </div>
+            </div>
+
+            <div class="control level-control">
+              <span id="levelControlLabel">Nivel</span>
+              <div class="view-toggle level-toggle" id="levelToggle" role="group" aria-labelledby="levelControlLabel">
+                <button class="view-option level-option is-active" type="button" data-level="region" aria-pressed="true">Departamento</button>
+                <button class="view-option level-option" type="button" data-level="province" aria-pressed="false">Provincia</button>
+                <button class="view-option level-option" type="button" data-level="district" aria-pressed="false">Distrito</button>
+              </div>
+            </div>
 
             <label class="control">
               <span>Necesidad básica</span>
@@ -60,15 +74,6 @@
                 <option value="water_continuity">Agua · % de viviendas sin agua todos los días</option>
                 <option value="education">Educación · % de la población de 3 a 24 años que no asiste</option>
                 <option value="internet">Internet · % de hogares sin conexión a internet</option>
-              </select>
-            </label>
-
-            <label class="control">
-              <span>Vista de mapa</span>
-              <select id="viewSelect">
-                <option value="nbi">Avance de la brecha</option>
-                <option value="investment">Inversión en el sector</option>
-                <option value="comparison">Brecha × inversión</option>
               </select>
             </label>
 
@@ -93,26 +98,35 @@
           </div>
 
           <div class="filter-toolbar" aria-label="Filtros combinables y exportación">
-            <label class="compact-control">
-              <span>Devengado</span>
-              <select id="tierFilterSelect">
-                <option value="all">Todos</option>
-                <option value="low">Bajo</option>
-                <option value="medium">Medio</option>
-                <option value="high">Alto</option>
-              </select>
-            </label>
-            <label class="compact-control">
-              <span>Avance</span>
-              <select id="progressFilterSelect">
-                <option value="all">Todos</option>
-                <option value="advance">Avance</option>
-                <option value="stagnant">Estancado</option>
-                <option value="setback">Retroceso</option>
-              </select>
-            </label>
+            <p class="filter-toolbar-title">Filtros</p>
+            <div class="multi-filter" id="tierFilterGroup" role="group" aria-labelledby="tierFilterLabel">
+              <div class="multi-filter-heading">
+                <span class="multi-filter-label" id="tierFilterLabel">Devengado</span>
+              </div>
+              <div class="multi-filter-options">
+                <label class="filter-choice filter-choice--red"><input type="checkbox" name="tierFilter" value="low" checked /><span>Bajo</span></label>
+                <label class="filter-choice filter-choice--yellow"><input type="checkbox" name="tierFilter" value="medium" checked /><span>Medio</span></label>
+                <label class="filter-choice filter-choice--green"><input type="checkbox" name="tierFilter" value="high" checked /><span>Alto</span></label>
+              </div>
+            </div>
+            <div class="multi-filter" id="progressFilterGroup" role="group" aria-labelledby="progressFilterLabel">
+              <div class="multi-filter-heading">
+                <span class="multi-filter-label" id="progressFilterLabel">Avance</span>
+              </div>
+              <div class="multi-filter-options">
+                <label class="filter-choice filter-choice--red"><input type="checkbox" name="progressFilter" value="setback" checked /><span>Retroceso</span></label>
+                <label class="filter-choice filter-choice--orange"><input type="checkbox" name="progressFilter" value="stagnant" checked /><span>Estancado</span></label>
+                <label class="filter-choice filter-choice--green"><input type="checkbox" name="progressFilter" value="advance" checked /><span>Avance</span></label>
+              </div>
+            </div>
             <button class="export-button" id="exportButton" type="button" title="Exportar los datos filtrados" disabled>
-              Exportar
+              <svg class="excel-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M7 2h8l4 4v16H7z" opacity=".34" />
+                <path fill="currentColor" d="M15 2v5h5" />
+                <path fill="currentColor" d="M4 5h9v15H4z" />
+                <path fill="#fff" d="m6.3 8.2 1.5 2.3 1.5-2.3h1.5l-2.2 3.3 2.3 3.4H9.4l-1.6-2.4-1.6 2.4H4.7L7 11.5 4.8 8.2z" />
+              </svg>
+              <span>Exportar a Excel</span>
             </button>
           </div>
 
@@ -123,9 +137,9 @@
           </section>
 
           <div class="mini-stats" aria-label="Resumen de la vista">
-            <div><span>Unidades</span><strong id="statUnits">—</strong></div>
-            <div><span>Comparables</span><strong id="statComparable">—</strong></div>
-            <div><span>Inversiones</span><strong id="statProjects">—</strong></div>
+            <div><span id="statUnitsLabel">Territorios</span><strong id="statUnits">—</strong></div>
+            <div><span>Inversiones</span><strong id="statComparable">—</strong></div>
+            <div><span>Devengado</span><strong id="statProjects">—</strong></div>
           </div>
 
           <p class="source-note">
@@ -146,23 +160,35 @@
           </div>
 
           <div class="map-nav" aria-label="Mover y ampliar el mapa">
-            <button id="zoomInButton" type="button" title="Acercar" aria-label="Acercar mapa">+</button>
-            <button id="zoomOutButton" type="button" title="Alejar hasta la vista mundial" aria-label="Alejar mapa hasta la vista mundial">−</button>
-            <button id="resetMapButton" type="button" title="Restablecer vista" aria-label="Restablecer posición y zoom">Recentrar</button>
+            <button class="map-location-button" id="resetMapButton" type="button" title="Recentrar mapa" aria-label="Recentrar mapa">
+              <svg class="map-location-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path class="map-location-cross" d="M12 2.2v3.1M12 18.7v3.1M2.2 12h3.1M18.7 12h3.1"></path>
+                <circle class="map-location-ring" cx="12" cy="12" r="6.3"></circle>
+                <circle class="map-location-dot" cx="12" cy="12" r="2.15"></circle>
+              </svg>
+            </button>
+            <div class="map-zoom-stack" role="group" aria-label="Zoom del mapa">
+              <button id="zoomInButton" type="button" title="Acercar" aria-label="Acercar mapa">+</button>
+              <button id="zoomOutButton" type="button" title="Alejar" aria-label="Alejar mapa">−</button>
+            </div>
+          </div>
+
+          <div class="map-actions" aria-label="Tabla y exportación del mapa">
+            <button id="tableButton" type="button" title="Mostrar tabla de territorios" aria-label="Mostrar tabla de territorios" aria-pressed="false">Tabla</button>
+            <button id="downloadPngButton" type="button" title="Abrir vista previa PNG" aria-label="Abrir vista previa PNG" aria-pressed="false" disabled>PNG</button>
           </div>
 
           <svg
             id="peruMap"
-            viewBox="-130 -240 900 1160"
+            viewBox="0 0 560 720"
             preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-labelledby="svgTitle svgDescription"
           >
-            <title id="svgTitle">Mapa interactivo del Perú con contexto mundial</title>
+            <title id="svgTitle">Mapa interactivo del Perú</title>
             <desc id="svgDescription">
-              Los límites de todos los países y el océano dan contexto mundial. Arrastra para mover, usa la rueda o los controles para ampliar y selecciona un territorio del Perú para abrir su ficha.
+              Mapa territorial del Perú. Arrastra para mover, usa la rueda o los controles para ampliar y selecciona un territorio para abrir su ficha.
             </desc>
-            <rect class="map-ocean" x="-130" y="-240" width="900" height="1160" aria-hidden="true"></rect>
             <g id="mapViewport">
               <g id="neighborLayer" aria-hidden="true"></g>
               <g id="mapLayer"></g>
@@ -186,6 +212,91 @@
             <p>Intenta recargar la página. Si el problema continúa, comunícalo al equipo responsable.</p>
           </div>
         </section>
+
+        <aside class="table-panel" id="tablePanel" aria-labelledby="tableTitle" hidden>
+          <div
+            class="table-resize-handle"
+            id="tableResizeHandle"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Cambiar ancho del panel de tabla"
+            tabindex="0"
+            title="Arrastra para cambiar el ancho del panel; doble clic para restablecer"
+          ></div>
+          <header class="table-panel-header">
+            <div>
+              <p class="eyebrow">TABLA TERRITORIAL</p>
+              <h2 id="tableTitle">Tabla</h2>
+            </div>
+            <button class="close-button table-close" id="tableCloseButton" type="button" aria-label="Cerrar tabla">×</button>
+          </header>
+
+          <div class="table-toolbar" aria-label="Opciones de la tabla">
+            <label class="table-control">
+              <span>Mostrar primeros</span>
+              <input id="tableLimitInput" type="number" min="1" max="500" step="1" value="50" inputmode="numeric" />
+            </label>
+            <label class="table-control table-control--wide">
+              <span>Ordenar por</span>
+              <select id="tableSortSelect"></select>
+            </label>
+            <label class="table-control">
+              <span>Orden</span>
+              <select id="tableDirectionSelect">
+                <option value="desc">Mayor a menor</option>
+                <option value="asc">Menor a mayor</option>
+              </select>
+            </label>
+            <details class="table-columns-menu" id="tableColumnsMenu">
+              <summary id="tableColumnsSummary">Columnas</summary>
+              <div class="table-columns-options" id="tableColumnsOptions" role="group" aria-label="Columnas visibles"></div>
+            </details>
+            <button class="table-copy-button" id="copyTableButton" type="button" title="Copiar la tabla con formato">Copiar tabla</button>
+          </div>
+
+          <p class="table-count" id="tableCount" aria-live="polite"></p>
+          <div class="table-scroll" tabindex="0" aria-label="Tabla desplazable de indicadores territoriales">
+            <table class="territory-table" id="territoryTable">
+              <thead id="territoryTableHead"></thead>
+              <tbody id="territoryTableBody"></tbody>
+            </table>
+          </div>
+          <footer class="table-note" id="tableNote"></footer>
+        </aside>
+
+        <aside class="table-panel png-panel" id="pngPanel" aria-labelledby="pngPanelTitle" hidden>
+          <div
+            class="table-resize-handle"
+            id="pngResizeHandle"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Cambiar ancho del panel PNG"
+            tabindex="0"
+            title="Arrastra para cambiar el ancho del panel; doble clic para restablecer"
+          ></div>
+          <header class="table-panel-header">
+            <div>
+              <p class="eyebrow">MAPA PNG</p>
+              <h2 id="pngPanelTitle">Vista previa</h2>
+            </div>
+            <button class="close-button table-close" id="pngCloseButton" type="button" aria-label="Cerrar vista previa PNG">×</button>
+          </header>
+
+          <div class="png-preview-body">
+            <div class="png-preview-stage">
+              <p class="png-preview-status" id="pngPreviewStatus" role="status">Generando vista previa…</p>
+              <img id="pngPreviewImage" class="png-preview-image" alt="Vista previa del mapa PNG" hidden />
+            </div>
+          </div>
+
+          <footer class="png-panel-footer">
+            <p id="pngPreviewMeta">La imagen mantiene fondo transparente.</p>
+            <div class="png-panel-actions">
+              <button class="png-copy-button" id="pngCopyButton" type="button" disabled>Copiar imagen</button>
+              <button class="png-download-button" id="pngDownloadButton" type="button" disabled>Descargar PNG</button>
+            </div>
+          </footer>
+        </aside>
       </main>
     </div>
 
@@ -199,6 +310,19 @@
           <button class="close-button" id="detailClose" type="button" aria-label="Cerrar ficha">×</button>
         </header>
         <div class="dialog-body" id="detailBody"></div>
+      </article>
+    </dialog>
+
+    <dialog id="contextDialog" class="context-dialog">
+      <article class="dialog-card">
+        <header class="dialog-header">
+          <div>
+            <p class="eyebrow">PANORAMA NACIONAL</p>
+            <h2>Contexto para el análisis</h2>
+          </div>
+          <button class="close-button" id="contextClose" type="button" aria-label="Cerrar contexto">×</button>
+        </header>
+        <div class="dialog-body context-summary" id="contextBody"></div>
       </article>
     </dialog>
 
